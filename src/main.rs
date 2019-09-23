@@ -99,11 +99,21 @@ impl CachingContentStore {
        }
    }
 
-   pub fn store<T: Serialize>(cached_content: CachedContent<T>) -> io::Result<()> {
+   pub fn store<T: Serialize>(&mut self, tag: &str, cached_content: CachedContent<T>) -> io::Result<()> {
        // Serialize and store an object based on ... something.
        // need to find a way to locate objects in the dir.
+
+       unimplemented!();
+
        Ok(())
    }
+
+   pub fn get<T: Serialize>(&mut self, tag: &str) -> io::Result<Option<T>> {
+       unimplemented!();
+
+       Ok(())
+   }
+
 }
 
 fn main() {
