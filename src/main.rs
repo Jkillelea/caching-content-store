@@ -1,4 +1,4 @@
-#![allow(warnings)]
+// #![allow(warnings)]
 
 extern crate serde;
 extern crate serde_json;
@@ -21,7 +21,7 @@ use std::time::{SystemTime,  Instant,  Duration,  UNIX_EPOCH};
 pub struct CachedContent<T: serde::Serialize> {
     update_time: Duration,
     expires_at: Option<Duration>,
-    pub content: T,
+    content: T,
 }
 
 impl<T: serde::Serialize> CachedContent<T> {
@@ -30,15 +30,9 @@ impl<T: serde::Serialize> CachedContent<T> {
         let time_now = now();
         let lifetime = lifetime.into();
 
-        let expires_at = if lifetime.is_some() {
-            Some(time_now + lifetime.unwrap())
-        } else {
-            None
-        };
-
         CachedContent {
             update_time: time_now,
-            expires_at: expires_at,
+            expires_at: lifetime.map(|lif| time_now + lif),
             content: content,
         }
     }
@@ -55,6 +49,8 @@ impl<T: serde::Serialize> CachedContent<T> {
 
 }
 
+/// Lets the underlying object be accessed in immutable ways, such as getting an element
+/// from an array
 impl<T: serde::Serialize> std::ops::Deref for CachedContent<T> {
     type Target = T;
     fn deref(&self) -> &T {
@@ -69,55 +65,62 @@ fn now() -> Duration {
             .unwrap_or(Duration::from_secs(0))
 }
 
+#[derive(Debug)]
+struct CachingContentStore {
+   base_path: PathBuf,
+}
+
+impl CachingContentStore {
+   pub fn init<'a, P>(path: P) -> Self
+       where P: Into<Option<&'a str>>
+   {
+       let mut base_path = path
+           .into()
+           .map_or_else(
+               || { PathBuf::from(env::vars_os().find(|(k, _v)| k == "HOME").unwrap().1) },
+               |p| { PathBuf::from(p) });
+
+       base_path.push(".rust_caching_content_store");
+
+       // create if not exsits
+       match fs::create_dir(&base_path) {
+           Err(e) => {
+               if e.kind() == io::ErrorKind::AlreadyExists {
+                   Ok(())
+               } else {
+                   Err(e)
+               }
+           }
+           _ => { Ok(()) }
+       }.unwrap();
+
+       CachingContentStore {
+           base_path,
+       }
+   }
+
+   pub fn store<T: Serialize>(cached_content: CachedContent<T>) -> io::Result<()> {
+       // Serialize and store an object based on ... something.
+       // need to find a way to locate objects in the dir.
+       Ok(())
+   }
+}
+
 fn main() {
     let cached_foo = CachedContent::from("hi there".to_string(), Duration::from_secs(100));
     println!("{:#?}", cached_foo.as_json());
 
     let cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], Duration::from_secs(100));
-    println!("{:#?}", cached_foo.as_json());
+    println!("{:#?}", cached_foo);
+
+    let mut cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], None);
+    println!("{:#?}", cached_foo);
+
+    let store = CachingContentStore::init(".");
+    println!("{:#?}", store);
 }
 
-// TODO: this is an old implementation of a store for CachedContent. Might want to update
-// #[derive(Debug)]
-// pub struct CachingContentStore {
-//    base_path: PathBuf,
-// }
-// 
 // impl CachingContentStore {
-//     pub fn init<P: Into<Option<String>>>(path: P) -> Self {
-//         // Default to Home dir
-// 
-//         let path = path.into(); // Option<String>
-// 
-//         let mut base_path = if path.is_some() {
-//             // user has specified a path to use
-//             PathBuf::from(path.unwrap())
-//         } else {
-//             // default to file in home dir
-//             PathBuf::from(env::vars_os()
-// 			    .find(|(k, _v)| k == "HOME")
-// 			    .unwrap().1)
-//         };
-// 
-//         base_path.push(".rust_caching_content_store");
-// 
-//         // create if not exsits
-//         match fs::create_dir(&base_path) {
-//             Err(e) => {
-//                 if e.kind() == io::ErrorKind::AlreadyExists {
-//                     Ok(())
-//                 } else {
-//                     Err(e)
-//                 }
-//             }
-//             _ => { Ok(()) }
-//         }.unwrap();
-// 
-//         CachingContentStore {
-//             base_path
-//         }
-//     }
-// 
 //     // TODO: or maybe this should store types of CachedContent instead of having them
 //     // store themselves?
 //     pub fn get<T>(&self, tag: String) -> Option<T> {
