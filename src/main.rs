@@ -1,17 +1,14 @@
 // #![allow(warnings)]
-
 extern crate serde;
 extern crate serde_json;
 use serde::{Serialize, Deserialize};
-use serde::ser::{Serializer, SerializeStruct};
 
 use std::env;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
-use std::ops;
 use std::path::PathBuf;
-use std::time::{SystemTime,  Instant,  Duration,  UNIX_EPOCH};
+use std::time::{SystemTime, Duration, UNIX_EPOCH};
 
 
 // TODO: Look for a better way to hold the update time
@@ -111,7 +108,7 @@ impl CachingContentStore {
    pub fn get<T: Serialize>(&mut self, tag: &str) -> io::Result<Option<T>> {
        unimplemented!();
 
-       Ok(())
+       Ok(None)
    }
 
 }
@@ -123,7 +120,7 @@ fn main() {
     let cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], Duration::from_secs(100));
     println!("{:#?}", cached_foo);
 
-    let mut cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], None);
+    let cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], None);
     println!("{:#?}", cached_foo);
 
     let store = CachingContentStore::init(".");
