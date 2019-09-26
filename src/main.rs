@@ -99,16 +99,12 @@ impl CachingContentStore {
    pub fn store<T: Serialize>(&mut self, tag: &str, cached_content: CachedContent<T>) -> io::Result<()> {
        // Serialize and store an object based on ... something.
        // need to find a way to locate objects in the dir.
-
        unimplemented!();
-
-       Ok(())
    }
 
    pub fn get<T: Serialize>(&mut self, tag: &str) -> io::Result<Option<T>> {
+       // same deal here. Find a way to find and deserialize objects
        unimplemented!();
-
-       Ok(None)
    }
 
 }
@@ -136,24 +132,24 @@ fn main() {
 //         // - Something
 //         //   - Expired -> Expired
 //         //   - Ok -> Valid
-// 
+//
 //         let read_dir = fs::read_dir(&self.base_path).unwrap();
-// 
+//
 //         // for f in files {
 //         //     match f {
 //         //         Ok(file) => {dbg!(file);},
 //         //         Err(e)   => {dbg!(e);},
 //         //     }
 //         // }
-// 
+//
 //         let files: Vec<fs::DirEntry> = read_dir
 //             .filter(|f| f.is_ok())
 //             .map(|f| dbg!(f.unwrap()))
 //             .collect();
-// 
+//
 //         None
 //     }
-// 
+//
 //     pub fn set<T>(&mut self, content: CachedContent<T>, tag: &String) -> io::Result<()> {
 //         let files: Vec<fs::DirEntry> = fs::read_dir(&self.base_path)?
 //             .filter(|f| f.is_ok())
@@ -163,9 +159,9 @@ fn main() {
 //                     .into_string()
 //                     .unwrap_or("Fake Tag Don't Use".into()) == tag)
 //             .collect();
-// 
+//
 //         dbg!(files);
-// 
+//
 //         unimplemented!()
 //     }
 // }
