@@ -1,4 +1,4 @@
-// #![allow(warnings)]
+#![allow(unused)]
 extern crate serde;
 extern crate serde_json;
 use serde::{Serialize, Deserialize};
@@ -6,7 +6,7 @@ use serde::{Serialize, Deserialize};
 use std::env;
 use std::fs;
 use std::io;
-use std::io::prelude::*;
+// use std::io::prelude::*;
 use std::path::PathBuf;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
 
@@ -15,13 +15,13 @@ use std::time::{SystemTime, Duration, UNIX_EPOCH};
 // Right now it's just the time since unix epoch
 /// Holds some content, an update time, and optionally, a expiry time.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CachedContent<T: serde::Serialize> {
+pub struct CachedContent<T: Serialize> {
     update_time: Duration,
     expires_at: Option<Duration>,
     content: T,
 }
 
-impl<T: serde::Serialize> CachedContent<T> {
+impl<T: Serialize> CachedContent<T> {
     /// Create a new object from some data. Optionally attach a time the object has to live.
     pub fn from<Dur: Into<Option<Duration>>>(content: T, lifetime: Dur) -> CachedContent<T> {
         let time_now = now();
@@ -48,7 +48,7 @@ impl<T: serde::Serialize> CachedContent<T> {
 
 /// Lets the underlying object be accessed in immutable ways, such as getting an element
 /// from an array
-impl<T: serde::Serialize> std::ops::Deref for CachedContent<T> {
+impl<T: Serialize> std::ops::Deref for CachedContent<T> {
     type Target = T;
     fn deref(&self) -> &T {
         &self.content
@@ -57,8 +57,7 @@ impl<T: serde::Serialize> std::ops::Deref for CachedContent<T> {
 
 /// Unix time now
 fn now() -> Duration {
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
+        SystemTime::now().duration_since(UNIX_EPOCH)
             .unwrap_or(Duration::from_secs(0))
 }
 
