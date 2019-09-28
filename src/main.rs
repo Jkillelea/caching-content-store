@@ -4,9 +4,9 @@ extern crate serde_json;
 use serde::{Serialize, Deserialize};
 
 use std::env;
-use std::fs;
+use std::fs::{self, File};
 use std::io;
-// use std::io::prelude::*;
+use std::io::prelude::*;
 use std::path::PathBuf;
 use std::time::{SystemTime, Duration, UNIX_EPOCH};
 
@@ -70,6 +70,9 @@ impl CachingContentStore {
    pub fn init<'a, P>(path: P) -> Self
        where P: Into<Option<&'a str>>
    {
+       // Create, if it doesn't alreayd exist, a folder called 
+       // `.rust_caching_content_store` under either a specified directory
+       // if one is given, or the home directory.
        let mut base_path = path
            .into()
            .map_or_else(
@@ -96,30 +99,32 @@ impl CachingContentStore {
    }
 
    pub fn store<T: Serialize>(&mut self, tag: &str, cached_content: CachedContent<T>) -> io::Result<()> {
-       // Serialize and store an object based on ... something.
-       // need to find a way to locate objects in the dir.
-       unimplemented!();
+       // Serialize and store an object
+       let mut path = self.base_path.clone();
+       path.push(tag);
+
+       path = dbg!(path);
+
+       let mut f = File::create(path)?;
+
+       f.write_all(cached_content.as_json().unwrap().as_bytes());
+
+       Ok(())
    }
 
    pub fn get<T: Serialize>(&mut self, tag: &str) -> io::Result<Option<T>> {
        // same deal here. Find a way to find and deserialize objects
+       // retrieving an object from JSON is grosser though
        unimplemented!();
    }
 
 }
 
 fn main() {
+    let mut store = CachingContentStore::init(".");
+
     let cached_foo = CachedContent::from("hi there".to_string(), Duration::from_secs(100));
-    println!("{:#?}", cached_foo.as_json());
-
-    let cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], Duration::from_secs(100));
-    println!("{:#?}", cached_foo);
-
-    let cached_foo = CachedContent::from(vec![1, 2, 3, 4, 5], None);
-    println!("{:#?}", cached_foo);
-
-    let store = CachingContentStore::init(".");
-    println!("{:#?}", store);
+    store.store("foo", cached_foo).unwrap();
 }
 
 // impl CachingContentStore {
